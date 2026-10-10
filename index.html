@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISGS WaveConnect - Iju Senior Grammar School</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Socket.io Client -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden font-sans">
+
+    <!-- TOP HEADER BAR -->
+    <header class="bg-emerald-800 text-white px-4 py-3 flex justify-between items-center shadow-lg border-b border-emerald-700">
+        <div class="flex items-center space-x-3">
+            <div class="bg-white text-emerald-900 rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm shadow-md border-2 border-emerald-400 overflow-hidden">
+                <!-- School Logo Placeholder/Icon -->
+                <i class="fa-solid fa-graduation-cap text-emerald-800 text-base"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-base leading-tight tracking-wide">ISGS WaveConnect</h1>
+                <p class="text-[11px] text-emerald-200 flex items-center gap-1">
+                    <span>By Threadwave</span> • <i class="fa-solid fa-phone text-[9px]"></i> 08082967776
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="openProfileModal()" class="bg-emerald-700 hover:bg-emerald-600 w-8 h-8 rounded-full flex items-center justify-center text-emerald-100 transition" title="Set My Phone">
+                <i class="fa-solid fa-user-gear text-xs"></i>
+            </button>
+            <button onclick="openGroupModal()" class="bg-emerald-700 hover:bg-emerald-600 w-8 h-8 rounded-full flex items-center justify-center text-emerald-100 transition" title="Create Group">
+                <i class="fa-solid fa-users-plus text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="bg-emerald-950 text-emerald-400 flex justify-around border-b border-emerald-800/60 text-xs font-semibold">
+        <button onclick="switchTab('chats')" id="tab-chats" class="flex-1 py-2.5 text-center border-b-2 border-emerald-400 text-white bg-emerald-900/40">Chats</button>
+        <button onclick="switchTab('global')" id="tab-global" class="flex-1 py-2.5 text-center hover:text-white">Live Lobby</button>
+        <button onclick="switchTab('status')" id="tab-status" class="flex-1 py-2.5 text-center hover:text-white">Updates</button>
+        <button onclick="switchTab('school')" id="tab-school" class="flex-1 py-2.5 text-center hover:text-white">School Info</button>
+    </nav>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <main class="flex-1 overflow-hidden relative bg-slate-950">
+
+        <!-- 1. CHATS TAB (Direct Numbers & Groups) -->
+        <section id="view-chats" class="p-4 space-y-4 h-full overflow-y-auto">
+            <!-- Direct Messaging Search Input -->
+            <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800 flex gap-2 shadow-inner">
+                <input type="tel" id="target-phone-input" placeholder="Enter student/teacher phone..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                <button onclick="startDirectChat()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                    <i class="fa-solid fa-paper-plane"></i> Message
+                </button>
+            </div>
+
+            <div id="chats-list" class="space-y-2">
+                <h4 class="text-[11px] uppercase tracking-wider text-slate-500 font-bold px-1">Active Channels</h4>
+                
+                <!-- Science Group Chat Item -->
+                <div onclick="switchTab('global')" class="bg-slate-900 p-3 rounded-xl flex items-center justify-between border border-slate-800 cursor-pointer hover:bg-slate-800/80 transition">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-11 h-11 bg-emerald-900/60 border border-emerald-500/40 rounded-full flex items-center justify-center text-emerald-400 font-bold text-sm">
+                            <i class="fa-solid fa-atom"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-xs text-slate-100">ISGS General School Hall</h4>
+                            <p class="text-[11px] text-slate-400">Public Live Lobby • Open to all</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded-full">Live</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. LIVE GLOBAL LOBBY TAB -->
+        <section id="view-global" class="hidden flex flex-col h-full">
+            <div class="bg-slate-900 px-4 py-2 text-[11px] text-emerald-400 border-b border-slate-800 flex justify-between items-center">
+                <span><i class="fa-solid fa-circle text-[8px] text-emerald-500 animate-pulse mr-1"></i> Public Live Stream</span>
+                <span class="text-slate-500 text-[10px]">Iju Senior Grammar School</span>
+            </div>
+            <div id="global-messages" class="flex-1 p-4 space-y-3 overflow-y-auto text-xs">
+                <!-- Live Messages Render Here -->
+            </div>
+            <div class="p-3 bg-slate-900 border-t border-slate-800 flex gap-2">
+                <input type="text" id="global-msg-input" placeholder="Type a message to everyone..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" onkeypress="if(event.key==='Enter') sendGlobalMessage()">
+                <button onclick="sendGlobalMessage()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-bold"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </section>
+
+        <!-- 3. STATUS / UPDATES TAB -->
+        <section id="view-status" class="p-4 space-y-4 hidden h-full overflow-y-auto">
+            <div class="flex items-center space-x-3 bg-slate-900 p-3 rounded-xl border border-slate-800">
+                <div class="w-11 h-11 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-xs text-slate-100">My Status</h4>
+                    <p class="text-[11px] text-slate-400">Share announcements or activity updates</p>
+                </div>
+            </div>
+            <h4 class="text-[11px] uppercase tracking-wider text-slate-500 font-bold px-1">School Updates</h4>
+            <div class="space-y-2">
+                <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1">
+                    <p class="text-xs font-semibold text-emerald-400">Lagos State Student Innovation Challenge</p>
+                    <p class="text-[11px] text-slate-300">AquaPure Solar Desalination Prototype demonstration updates.</p>
+                    <span class="text-[10px] text-slate-500 block">Today, 8:30 AM</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. SCHOOL INFO TAB -->
+        <section id="view-school" class="p-4 space-y-4 hidden h-full overflow-y-auto text-xs">
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <h3 class="font-bold text-sm text-emerald-400 flex items-center gap-2">
+                    <i class="fa-solid fa-school"></i> Iju Senior Grammar School
+                </h3>
+                <p class="text-slate-300 text-[11px] leading-relaxed">Fostering innovation, academic excellence, and technical development in Lagos State.</p>
+            </div>
+
+            <!-- School Houses (All 6 Houses) -->
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3">
+                <h4 class="font-semibold text-[11px] uppercase text-slate-400 tracking-wider">School Houses (All 6 Houses)</h4>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="bg-slate-100/10 border border-slate-200/30 p-2.5 rounded-lg flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-white border border-slate-400 shadow"></span>
+                        <span class="font-medium text-slate-200">White House</span>
+                    </div>
+                    <div class="bg-purple-950/40 border border-purple-800/50 p-2.5 rounded-lg flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-purple-500 shadow"></span>
+                        <span class="font-medium text-slate-200">Purple House</span>
+                    </div>
+                    <div class="bg-yellow-950/40 border border-yellow-800/50 p-2.5 rounded-lg flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-yellow-400 shadow"></span>
+                        <span class="font-medium text-slate-200">Yellow House</span>
+                    </div>
+                    <div class="bg-blue-950/40 border border-blue-800/50 p-2.5 rounded-lg flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-blue-500 shadow"></span>
+                        <span class="font-medium text-slate-200">Blue House</span>
+                    </div>
+                    <div class="bg-red-950/40 border border-red-800/50 p-2.5 rounded-lg flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-red-500 shadow"></span>
+                        <span class="font-medium text-slate-200">Red House</span>
+                    </div>
+                    <div class="bg-emerald-950/40 border border-emerald-800/50 p-2.5 rounded-lg flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500 shadow"></span>
+                        <span class="font-medium text-slate-200">Green House</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Creator Credit Box -->
+            <div class="bg-emerald-950/50 border border-emerald-800/60 p-3 rounded-xl text-center space-y-1">
+                <p class="text-[11px] text-emerald-300 font-semibold">Created by Threadwave</p>
+                <p class="text-[10px] text-emerald-400"><i class="fa-solid fa-phone mr-1"></i> Contact: 08082967776</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER CREDIT BAR -->
+    <footer class="bg-slate-900 border-t border-slate-800 px-4 py-2 text-center text-[10px] text-slate-400 flex justify-between items-center">
+        <span>ISGS WaveConnect</span>
+        <span class="text-emerald-400 font-medium">Created by Threadwave (08082967776)</span>
+    </footer>
+
+    <!-- TOAST ALERTS -->
+    <div id="toast-container" class="fixed top-14 left-1/2 transform -translate-x-1/2 z-50 w-11/12 max-w-md pointer-events-none space-y-2"></div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const socket = io(window.location.origin);
+
+        let myPhone = localStorage.getItem("isgs_phone") || prompt("Enter your phone number to connect on ISGS WaveConnect:") || "08082967776";
+        localStorage.setItem("isgs_phone", myPhone);
+
+        socket.emit('register_user', myPhone);
+        socket.emit('join_global_room');
+
+        socket.on('receive_notification', (data) => {
+            showToast(data.message || `New notification from ${data.sender}`);
+        });
+
+        socket.on('receive_global_message', (data) => {
+            appendGlobalMessage(data.sender, data.text);
+        });
+
+        function switchTab(tabName) {
+            ['chats', 'global', 'status', 'school'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('border-b-2', 'border-emerald-400', 'text-white', 'bg-emerald-900/40');
+                document.getElementById(`tab-${t}`).classList.add('text-emerald-400');
+            });
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`).classList.add('border-b-2', 'border-emerald-400', 'text-white', 'bg-emerald-900/40');
+            document.getElementById(`tab-${tabName}`).classList.remove('text-emerald-400');
+        }
+
+        function sendGlobalMessage() {
+            const input = document.getElementById('global-msg-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            socket.emit('send_global_message', { sender: myPhone, text: text });
+            input.value = '';
+        }
+
+        function appendGlobalMessage(sender, text) {
+            const container = document.getElementById('global-messages');
+            const isMe = sender === myPhone;
+            const div = document.createElement('div');
+            div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+            div.innerHTML = `
+                <div class="max-w-[85%] rounded-xl px-3 py-2 ${isMe ? 'bg-emerald-700 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700'}">
+                    <span class="block text-[9px] text-emerald-300 font-bold mb-0.5">${isMe ? 'You' : sender}</span>
+                    <p class="text-xs leading-relaxed">${text}</p>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function startDirectChat() {
+            const targetPhone = document.getElementById('target-phone-input').value.trim();
+            if(!targetPhone) {
+                alert("Please enter a valid phone number!");
+                return;
+            }
+            socket.emit('send_direct_message', {
+                targetPhone: targetPhone,
+                senderPhone: myPhone,
+                text: "Hello! Starting chat on ISGS WaveConnect."
+            });
+            showToast(`Direct message sent to ${targetPhone}`);
+            document.getElementById('target-phone-input').value = '';
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-emerald-600 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl pointer-events-auto flex items-center justify-between border border-emerald-400/40';
+            toast.innerHTML = `<span><i class="fa-solid fa-bell mr-2"></i>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        function openProfileModal() {
+            const newPhone = prompt("Update your registered phone number:", myPhone);
+            if(newPhone) {
+                myPhone = newPhone;
+                localStorage.setItem("isgs_phone", myPhone);
+                socket.emit('register_user', myPhone);
+                showToast("Phone number updated!");
+            }
+        }
+
+        function openGroupModal() {
+            const groupName = prompt("Enter Group Name:");
+            if(groupName) {
+                showToast(`Group "${groupName}" created!`);
+            }
+        }
+    </script>
+</body>
+  </html>
+  
