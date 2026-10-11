@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISGS WaveConnect - Iju Senior Grammar School</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Socket.io Client -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 h-screen flex flex-col overflow-hidden font-sans">
+
+    <!-- TOP HEADER BAR -->
+    <header class="bg-emerald-800 text-white px-4 py-3 flex justify-between items-center shadow-lg border-b border-emerald-700">
+        <div class="flex items-center space-x-3">
+            <!-- EMBEDDED OFFICIAL ISGS CREST LOGO -->
+            <div class="bg-amber-50 rounded-full w-10 h-10 flex items-center justify-center p-1 shadow-md border-2 border-emerald-400 overflow-hidden shrink-0">
+                <svg viewBox="0 0 200 220" class="w-full h-full text-slate-900 fill-current">
+                    <rect x="20" y="10" width="160" height="150" fill="none" stroke="currentColor" stroke-width="6"/>
+                    <line x1="20" y1="45" x2="180" y2="45" stroke="currentColor" stroke-width="4"/>
+                    <line x1="20" y1="70" x2="180" y2="70" stroke="currentColor" stroke-width="4"/>
+                    <line x1="100" y1="70" x2="100" y2="120" stroke="currentColor" stroke-width="4"/>
+                    <line x1="20" y1="120" x2="180" y2="120" stroke="currentColor" stroke-width="4"/>
+                    <text x="100" y="26" text-anchor="middle" font-size="11" font-weight="bold">IJU SENIOR GRAMMAR</text>
+                    <text x="100" y="39" text-anchor="middle" font-size="11" font-weight="bold">SCHOOL</text>
+                    <text x="100" y="62" text-anchor="middle" font-size="16" font-weight="bold">IJU</text>
+                    <!-- Science Chemistry Lab Flasks -->
+                    <path d="M45,110 L55,110 L55,85 L45,85 Z M50,85 L50,75 M35,110 Q50,115 65,110 L60,95 L40,95 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+                    <path d="M75,110 Q85,115 95,110 L88,90 L82,90 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+                    <!-- Farm Agriculture Hoe & Cutlass -->
+                    <line x1="120" y1="110" x2="165" y2="75" stroke="currentColor" stroke-width="4"/>
+                    <path d="M120,110 Q110,105 125,95 Z" fill="currentColor"/>
+                    <line x1="160" y1="110" x2="125" y2="80" stroke="currentColor" stroke-width="3"/>
+                    <!-- Open Book -->
+                    <path d="M70,132 Q100,125 100,140 Q100,125 130,132 L130,152 Q100,145 100,158 Q100,145 70,152 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+                    <!-- Banner Ribbon -->
+                    <path d="M10,165 L40,155 L160,155 L190,165 L175,185 L160,175 L40,175 L25,185 Z" fill="none" stroke="currentColor" stroke-width="4"/>
+                    <text x="100" y="170" text-anchor="middle" font-size="9" font-weight="bold">EXCELLENCE THROUGH HARDWORK</text>
+                </svg>
+            </div>
+            <div>
+                <h1 class="font-bold text-base leading-tight tracking-wide">ISGS WaveConnect</h1>
+                <p class="text-[11px] text-emerald-200 flex items-center gap-1">
+                    <span>By Threadwave</span> • <i class="fa-solid fa-phone text-[9px]"></i> 08082967776
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="openProfileModal()" class="bg-emerald-700 hover:bg-emerald-600 w-8 h-8 rounded-full flex items-center justify-center text-emerald-100 transition" title="Set My Phone">
+                <i class="fa-solid fa-user-gear text-xs"></i>
+            </button>
+            <button onclick="openGroupModal()" class="bg-emerald-700 hover:bg-emerald-600 w-8 h-8 rounded-full flex items-center justify-center text-emerald-100 transition" title="Create Group">
+                <i class="fa-solid fa-users-plus text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="bg-emerald-950 text-emerald-400 flex justify-around border-b border-emerald-800/60 text-xs font-semibold">
+        <button onclick="switchTab('chats')" id="tab-chats" class="flex-1 py-2.5 text-center border-b-2 border-emerald-400 text-white bg-emerald-900/40">Chats & DMs</button>
+        <button onclick="switchTab('global')" id="tab-global" class="flex-1 py-2.5 text-center hover:text-white">Live Lobby</button>
+        <button onclick="switchTab('status')" id="tab-status" class="flex-1 py-2.5 text-center hover:text-white">Updates / Status</button>
+        <button onclick="switchTab('school')" id="tab-school" class="flex-1 py-2.5 text-center hover:text-white">School Info</button>
+    </nav>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <main class="flex-1 overflow-hidden relative bg-slate-950">
+
+        <!-- 1. CHATS & DIRECT MESSAGES TAB -->
+        <section id="view-chats" class="p-4 space-y-4 h-full overflow-y-auto">
+            <!-- Direct Messaging Search Input -->
+            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 shadow-inner">
+                <p class="text-[11px] text-slate-400 font-medium">Send Direct Message to SIM/Phone Number:</p>
+                <div class="flex gap-2">
+                    <input type="tel" id="target-phone-input" placeholder="e.g. 08012345678..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                    <button onclick="startDirectChat()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                        <i class="fa-solid fa-paper-plane"></i> Send DM
+                    </button>
+                </div>
+            </div>
+
+            <!-- Student & Teacher Directory -->
+            <div class="space-y-2">
+                <h4 class="text-[11px] uppercase tracking-wider text-slate-500 font-bold px-1">School Directory (Tap to test DM)</h4>
+                
+                <div class="space-y-2" id="directory-list">
+                    <div onclick="selectRecipient('08082967776', 'My Other SIM Number')" class="bg-slate-900 p-3 rounded-xl flex items-center justify-between border border-slate-800 cursor-pointer hover:bg-slate-800/80 transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="relative">
+                                <div class="w-10 h-10 bg-emerald-900/60 rounded-full flex items-center justify-center text-emerald-300 font-bold text-xs"><i class="fa-solid fa-mobile-screen"></i></div>
+                                <span class="w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full absolute bottom-0 right-0 animate-pulse"></span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-xs text-slate-100">Test Dual SIM Number</h4>
+                                <p class="text-[10px] text-emerald-400">08082967776 • Online</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-1 rounded-lg">Select</span>
+                    </div>
+
+                    <div onclick="selectRecipient('08011112222', 'Mr. Musa (Physics Teacher)')" class="bg-slate-900 p-3 rounded-xl flex items-center justify-between border border-slate-800 cursor-pointer hover:bg-slate-800/80 transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="relative">
+                                <div class="w-10 h-10 bg-blue-900/60 rounded-full flex items-center justify-center text-blue-300 font-bold text-xs">MM</div>
+                                <span class="w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full absolute bottom-0 right-0 animate-pulse"></span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-xs text-slate-100">Mr. Musa (Physics Teacher)</h4>
+                                <p class="text-[10px] text-emerald-400">Hey, what's up? I'm online!</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] text-slate-500">Tap to DM</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. LIVE GLOBAL LOBBY TAB -->
+        <section id="view-global" class="hidden flex flex-col h-full">
+            <div class="bg-slate-900 px-4 py-2 text-[11px] text-emerald-400 border-b border-slate-800 flex justify-between items-center">
+                <span><i class="fa-solid fa-circle text-[8px] text-emerald-500 animate-pulse mr-1"></i> Public School Live Room</span>
+                <span class="text-slate-500 text-[10px]">Open to All Students & Staff</span>
+            </div>
+            <div id="global-messages" class="flex-1 p-4 space-y-3 overflow-y-auto text-xs">
+                <!-- Live Messages Render Here -->
+            </div>
+
+            <div class="p-3 bg-slate-900 border-t border-slate-800 flex gap-2 items-center">
+                <button id="record-btn" onclick="toggleVoiceRecording()" class="bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white w-9 h-9 rounded-lg flex items-center justify-center transition" title="Record Voice Note">
+                    <i id="mic-icon" class="fa-solid fa-microphone"></i>
+                </button>
+                <input type="text" id="global-msg-input" placeholder="Type a message to everyone..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" onkeypress="if(event.key==='Enter') sendGlobalMessage()">
+                <button onclick="sendGlobalMessage()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-bold"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </section>
+
+        <!-- 3. STATUS / UPDATES TAB (Supports Direct Video File Uploads) -->
+        <section id="view-status" class="p-4 space-y-4 hidden h-full overflow-y-auto">
+            <!-- Status Video/Text Post Box -->
+            <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-3">
+                <h4 class="font-semibold text-xs text-emerald-400 flex items-center gap-2">
+                    <i class="fa-solid fa-photo-film"></i> Post Status or School Video
+                </h4>
+                <textarea id="status-text-input" placeholder="What's on your mind? Type school update or status..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 h-16 resize-none"></textarea>
+                
+                <div class="flex items-center justify-between gap-2">
+                    <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-lg text-[11px] text-slate-300 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-file-video text-emerald-400"></i>
+                        <span id="file-label">Select Video/Media</span>
+                        <input type="file" id="status-video-file" accept="video/*,image/*" class="hidden" onchange="handleFileSelect(this)">
+                    </label>
+                    <button onclick="publishStatus()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition">
+                        Post Status
+                    </button>
+                </div>
+            </div>
+
+            <h4 class="text-[11px] uppercase tracking-wider text-slate-500 font-bold px-1">Recent School Status Feed</h4>
+            <div id="status-feed" class="space-y-3">
+                <!-- Status entries populate here -->
+            </div>
+                      </section>
+          <!-- 4. SCHOOL INFO TAB -->
+        <section id="view-school" class="p-4 space-y-4 hidden h-full overflow-y-auto text-xs">
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center space-x-4">
+                <div class="w-16 h-16 bg-amber-50 p-1.5 rounded-xl shadow border border-slate-700 shrink-0 flex items-center justify-center">
+                    <svg viewBox="0 0 200 220" class="w-full h-full text-slate-900 fill-current">
+                        <rect x="20" y="10" width="160" height="150" fill="none" stroke="currentColor" stroke-width="6"/>
+                        <line x1="20" y1="45" x2="180" y2="45" stroke="currentColor" stroke-width="4"/>
+                        <line x1="20" y1="70" x2="180" y2="70" stroke="currentColor" stroke-width="4"/>
+                        <line x1="100" y1="70" x2="100" y2="120" stroke="currentColor" stroke-width="4"/>
+                        <line x1="20" y1="120" x2="180" y2="120" stroke="currentColor" stroke-width="4"/>
+                        <text x="100" y="26" text-anchor="middle" font-size="11" font-weight="bold">IJU SENIOR GRAMMAR</text>
+                        <text x="100" y="39" text-anchor="middle" font-size="11" font-weight="bold">SCHOOL</text>
+                        <text x="100" y="62" text-anchor="middle" font-size="16" font-weight="bold">IJU</text>
+                        <path d="M45,110 L55,110 L55,85 L45,85 Z M50,85 L50,75 M35,110 Q50,115 65,110 L60,95 L40,95 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+                        <line x1="120" y1="110" x2="165" y2="75" stroke="currentColor" stroke-width="4"/>
+                        <path d="M70,132 Q100,125 100,140 Q100,125 130,132 L130,152 Q100,145 100,158 Q100,145 70,152 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+                        <path d="M10,165 L40,155 L160,155 L190,165 L175,185 L160,175 L40,175 L25,185 Z" fill="none" stroke="currentColor" stroke-width="4"/>
+                        <text x="100" y="170" text-anchor="middle" font-size="9" font-weight="bold">EXCELLENCE THROUGH HARDWORK</text>
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="font-bold text-sm text-emerald-400">Iju Senior Grammar School</h3>
+                    <p class="text-[11px] text-amber-200 font-semibold italic">"EXCELLENCE THROUGH HARDWORK"</p>
+                    <p class="text-[10px] text-slate-400 leading-tight">Fostering innovation, academic excellence, and technical development in Lagos State.</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3">
+                <h4 class="font-semibold text-[11px] uppercase text-slate-400 tracking-wider">School Houses</h4>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="bg-slate-100/10 border border-slate-200/30 p-2.5 rounded-lg flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-white border border-slate-400 shadow"></span>
+                        <span class="font-medium text-slate-200">White House</span>
+                    </div>
+                    <div class="bg-purple-950/40 border border-purple-800/50 p-2.5 rounded-lg flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-purple-500 shadow"></span>
+                        <span class="font-medium text-slate-200">Purple House</span>
+                    </div>
+                    <div class="bg-yellow-950/40 border border-yellow-800/50 p-2.5 rounded-lg flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-yellow-400 shadow"></span>
+                        <span class="font-medium text-slate-200">Yellow House</span>
+                    </div>
+                    <div class="bg-blue-950/40 border border-blue-800/50 p-2.5 rounded-lg flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-blue-500 shadow"></span>
+                        <span class="font-medium text-slate-200">Blue House</span>
+                    </div>
+                    <div class="bg-red-950/40 border border-red-800/50 p-2.5 rounded-lg flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-red-500 shadow"></span>
+                        <span class="font-medium text-slate-200">Red House</span>
+                    </div>
+                    <div class="bg-emerald-950/40 border border-emerald-800/50 p-2.5 rounded-lg flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500 shadow"></span>
+                        <span class="font-medium text-slate-200">Green House</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-emerald-950/50 border border-emerald-800/60 p-3 rounded-xl text-center space-y-1">
+                <p class="text-[11px] text-emerald-300 font-semibold">Created by Threadwave</p>
+                <p class="text-[10px] text-emerald-400"><i class="fa-solid fa-phone mr-1"></i> Contact: 08082967776</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER CREDIT BAR -->
+    <footer class="bg-slate-900 border-t border-slate-800 px-4 py-2 text-center text-[10px] text-slate-400 flex justify-between items-center">
+        <span>ISGS WaveConnect</span>
+        <span class="text-emerald-400 font-medium">Created by Threadwave (08082967776)</span>
+    </footer>
+
+    <!-- POP-UP OVERLAY FOR DIRECT MESSAGES -->
+    <div id="dm-popup-overlay" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border-2 border-emerald-500 rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl animate-bounce">
+            <div class="flex items-center space-x-3 text-emerald-400">
+                <i class="fa-solid fa-comment-dots text-2xl"></i>
+                <h3 class="font-bold text-sm text-white">New Direct Message Received!</h3>
+            </div>
+            <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 space-y-1">
+                <p id="popup-sender" class="text-[11px] font-bold text-emerald-400"></p>
+                <p id="popup-text" class="text-xs text-slate-200"></p>
+            </div>
+            <button onclick="closeDmPopup()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition">
+                Open Message / Dismiss
+            </button>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINERS -->
+    <div id="toast-container" class="fixed top-14 left-1/2 transform -translate-x-1/2 z-40 w-11/12 max-w-md pointer-events-none space-y-2"></div>
+
+    <!-- JAVASCRIPT & NOTIFICATION LOGIC -->
+    <script>
+        const socket = io(window.location.origin);
+
+        let myPhone = localStorage.getItem("isgs_phone") || prompt("Enter your phone number for ISGS WaveConnect:") || "08082967776";
+        localStorage.setItem("isgs_phone", myPhone);
+
+        // Request real phone screen push notification permissions
+        if ("Notification" in window && Notification.permission !== "granted") {
+            Notification.requestPermission();
+        }
+
+        socket.emit('register_user', myPhone);
+        socket.emit('join_global_room');
+
+        const initialStatuses = [
+            { sender: 'ISGS Official', text: 'Lagos State Cleaner Energy Student Innovation Challenge updates!', videoUrl: '', time: 'Today, 8:30 AM' }
+        ];
+
+        let selectedVideoData = "";
+
+        window.onload = () => {
+            renderStatuses();
+        };
+
+        // Handle real-time Direct Message notifications
+        socket.on('receive_notification', (data) => {
+            triggerRealScreenNotification(data.sender, data.message || "Sent you a direct message!");
+        });
+
+        socket.on('receive_global_message', (data) => {
+            appendGlobalMessage(data.sender, data.text, data.audioUrl);
+        });
+
+        function switchTab(tabName) {
+            ['chats', 'global', 'status', 'school'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('border-b-2', 'border-emerald-400', 'text-white', 'bg-emerald-900/40');
+                document.getElementById(`tab-${t}`).classList.add('text-emerald-400');
+            });
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`).classList.add('border-b-2', 'border-emerald-400', 'text-white', 'bg-emerald-900/40');
+            document.getElementById(`tab-${tabName}`).classList.remove('text-emerald-400');
+        }
+
+        function sendGlobalMessage() {
+            const input = document.getElementById('global-msg-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            socket.emit('send_global_message', { sender: myPhone, text: text });
+            input.value = '';
+        }
+
+        function appendGlobalMessage(sender, text, audioUrl = null) {
+            const container = document.getElementById('global-messages');
+            const isMe = sender === myPhone;
+            const div = document.createElement('div');
+            div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+
+            let contentHTML = `<p class="text-xs leading-relaxed">${text}</p>`;
+            if(audioUrl) {
+                contentHTML += `<audio controls class="mt-2 text-xs w-56 h-8"><source src="${audioUrl}" type="audio/webm"></audio>`;
+            }
+
+            div.innerHTML = `
+                <div class="max-w-[85%] rounded-xl px-3 py-2 ${isMe ? 'bg-emerald-700 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700'}">
+                    <span class="block text-[9px] text-emerald-300 font-bold mb-0.5">${isMe ? 'You' : sender}</span>
+                    ${contentHTML}
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Handle File Uploads for Video Statuses
+        function handleFileSelect(input) {
+            const file = input.files[0];
+            if (file) {
+                document.getElementById('file-label').innerText = file.name.substring(0, 18) + '...';
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    selectedVideoData = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function publishStatus() {
+            const text = document.getElementById('status-text-input').value.trim();
+            if (!text && !selectedVideoData) {
+                alert("Please enter a text status or select a video!");
+                return;
+            }
+
+            initialStatuses.unshift({
+                sender: `User: ${myPhone}`,
+                text: text || "Posted a status video",
+                videoUrl: selectedVideoData,
+                time: 'Just now'
+            });
+
+            document.getElementById('status-text-input').value = '';
+            selectedVideoData = "";
+            document.getElementById('file-label').innerText = "Select Video/Media";
+
+            renderStatuses();
+            showToast("Status & Video published successfully!");
+        }
+
+        function renderStatuses() {
+            const feed = document.getElementById('status-feed');
+            feed.innerHTML = '';
+            initialStatuses.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2';
+                
+                let mediaHTML = '';
+                if(s.videoUrl) {
+                    mediaHTML = `<video controls class="w-full rounded-lg border border-slate-800 mt-2 max-h-56 object-cover bg-black"><source src="${s.videoUrl}"></video>`;
+                }
+
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-semibold text-emerald-400">${s.sender}</span>
+                        <span class="text-[10px] text-slate-500">${s.time}</span>
+                    </div>
+                    <p class="text-xs text-slate-200">${s.text}</p>
+                    ${mediaHTML}
+                `;
+                feed.appendChild(div);
+            });
+        }
+
+        function selectRecipient(phone, name) {
+            document.getElementById('target-phone-input').value = phone;
+            showToast(`Selected ${name} (${phone})`);
+        }
+
+        function startDirectChat() {
+            const targetPhone = document.getElementById('target-phone-input').value.trim();
+            if(!targetPhone) {
+                alert("Please enter a target phone number!");
+                return;
+            }
+            socket.emit('send_direct_message', {
+                targetPhone: targetPhone,
+                senderPhone: myPhone,
+                text: "Hey! You have a new message on ISGS WaveConnect."
+            });
+            showToast(`Direct message sent to ${targetPhone}`);
+        }
+
+        // TRIGGER REAL PHONE SYSTEM POP-UP & SCREEN OVERLAY
+        function triggerRealScreenNotification(sender, messageText) {
+            // 1. Real Phone System Banner
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification(`ISGS WaveConnect: ${sender}`, {
+                    body: messageText,
+                    icon: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
+                });
+            }
+
+            // 2. Visual Screen Overlay Pop-up
+            document.getElementById('popup-sender').innerText = `From: ${sender}`;
+            document.getElementById('popup-text').innerText = messageText;
+            document.getElementById('dm-popup-overlay').classList.remove('hidden');
+        }
+
+        function closeDmPopup() {
+            document.getElementById('dm-popup-overlay').classList.add('hidden');
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-emerald-600 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl pointer-events-auto flex items-center justify-between border border-emerald-400/40';
+            toast.innerHTML = `<span><i class="fa-solid fa-bell mr-2"></i>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        function openProfileModal() {
+            const newPhone = prompt("Update your phone number:", myPhone);
+            if(newPhone) {
+                myPhone = newPhone;
+                localStorage.setItem("isgs_phone", myPhone);
+                socket.emit('register_user', myPhone);
+                showToast("Phone number updated!");
+            }
+        }
+
+        function openGroupModal() {
+            const groupName = prompt("Enter Group Name:");
+            if(groupName) {
+                showToast(`Group "${groupName}" created!`);
+            }
+        }
+    </script>
+</body>
+  </html>
+  
