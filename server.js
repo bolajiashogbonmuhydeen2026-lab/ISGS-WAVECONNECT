@@ -77,4 +77,51 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`ISGS WaveConnect server running on port ${PORT}`);
 });
+    // Add this helper function to render messages in the Public School Live Room
+function displayLiveLobbyMessage(msgData) {
+    const chatContainer = document.getElementById('live-lobby-messages'); // Your live chat message container
+    const currentUserId = localStorage.getItem('isgs_user_id'); // Current logged in user ID
+
+    const messageWrapper = document.createElement('div');
+    messageWrapper.classList.add('chat-bubble');
+    messageWrapper.id = `msg-${msgData.id}`;
+
+    // Sender label and message text
+    let messageContent = `
+        <div class="msg-header">
+            <strong>${msgData.senderName}</strong> 
+            <small>${msgData.time || ''}</small>
+        </div>
+        <div class="msg-body">${msgData.text}</div>
+    `;
+
+    // ADD DELETE BUTTON ONLY FOR MESSAGES SENT BY THE CURRENT USER
+    if (msgData.senderId === currentUserId) {
+        messageContent += `
+            <button class="delete-msg-btn" onclick="deleteMyMessage('${msgData.id}')" style="background:transparent; border:none; color:#ff4d4d; cursor:pointer; font-size:12px; margin-top:4px;">
+                🗑️ Delete
+            </button>
+        `;
+    }
+
+    messageWrapper.innerHTML = messageContent;
+    chatContainer.appendChild(messageWrapper);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+// Delete Message function
+function deleteMyMessage(messageId) {
+    if (confirm("Are you sure you want to delete this message?")) {
+        // Emit to your backend socket or call your delete API endpoint
+        if (typeof socket !== 'undefined') {
+            socket.emit('delete_lobby_message', { messageId: messageId });
+        }
         
+        // Remove locally from UI immediately
+        const msgElem = document.getElementById(`msg-${messageId}`);
+        if (msgElem) {
+            msgElem.remove();
+        }
+    }
+      }
+  
