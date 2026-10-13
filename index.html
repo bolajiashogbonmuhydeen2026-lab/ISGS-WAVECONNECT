@@ -554,6 +554,117 @@
                 showToast(`Group "${groupName}" created!`);
             }
         }
+        const socket = io();
+
+let myPhone = localStorage.getItem('isgs_user_phone');
+if (!myPhone) {
+    myPhone = prompt("Enter your phone number (e.g. 08082957776):") || "08000000000";
+    localStorage.setItem('isgs_user_phone', myPhone);
+}
+
+socket.emit('register_user', myPhone);
+
+/* ================= PUBLIC LIVE LOBBY ================= */
+const lobbyContainer = document.getElementById('global-messages') || document.getElementById('status-feed');
+
+socket.on('load_public_chat_history', (messages) => {
+    if (!lobbyContainer) return;
+    lobbyContainer.innerHTML = '';
+    messages.forEach(renderPublicMessage);
+});
+
+socket.on('new_public_message', (msg) => {
+    renderPublicMessage(msg);
+});
+
+socket.on('public_message_deleted', (messageId) => {
+    const elem = document.getElementById(messageId);
+    if (elem) elem.remove();
+});
+
+function renderPublicMessage(msg) {
+    if (!lobbyContainer) return;
+
+    const isMe = msg.senderPhone === myPhone;
+    const msgDiv = document.createElement('div');
+    msgDiv.id = msg.id;
+    msgDiv.className = `p-3 my-2 rounded-lg text-white ${isMe ? 'bg-emerald-800 ml-auto max-w-[85%]' : 'bg-slate-800 mr-auto max-w-[85%]'}`;
+
+    msgDiv.innerHTML = `
+        <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+            <span class="font-bold text-amber-300">${escapeHtml(msg.senderName)} (${msg.senderPhone})</span>
+            <span class="text-[10px] text-slate-400">${msg.timestamp}</span>
+        </div>
+        <p class="text-sm">${escapeHtml(msg.text)}</p>
+        <button onclick="deletePublicMessage('${msg.id}')" class="text-red-400 text-xs mt-1 underline">Delete</button>
+    `;
+
+    lobbyContainer.appendChild(msgDiv);
+    lobbyContainer.scrollTop = lobbyContainer.scrollHeight;
+}
+
+function sendPublicMessage(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+
+    socket.emit('send_public_message', {
+        senderPhone: myPhone,
+        senderName: localStorage.getItem('isgs_user_name') || 'Student',
+        text: text
+    });
+
+    input.value = '';
+}
+
+function deletePublicMessage(messageId) {
+    if (confirm("Delete this message?")) {
+        socket.emit('delete_public_message', messageId);
+    }
+}
+
+
+/* ================= DIRECT MESSAGING & REPLIES ================= */
+
+socket.on('load_my_dms', (dmsList) => {
+    // Renders DM inbox history or updates UI
+    console.log("Loaded DMs:", dmsList);
+});
+
+socket.on('receive_direct_message', (dm) => {
+    alert(`📬 New Direct Message from ${dm.senderPhone}:\n\n"${dm.text}"`);
+});
+
+function sendCustomDirectMessage(targetPhoneId, textInputId) {
+    const targetPhone = document.getElementById(targetPhoneId)?.value.trim();
+    const textContent = document.getElementById(textInputId)?.value.trim();
+
+    if (!targetPhone || !textContent) {
+        alert("Please enter both the target phone number and your message content!");
+        return;
+    }
+
+    socket.emit('send_direct_message', {
+        targetPhone: targetPhone,
+        senderPhone: myPhone,
+        text: textContent
+    });
+
+    alert(`Direct Message sent to ${targetPhone}!`);
+    document.getElementById(textInputId).value = '';
+}
+
+function deleteDirectMessage(messageId) {
+    if (confirm("Delete this direct message?")) {
+        socket.emit('delete_direct_message', { messageId: messageId, phoneNum: myPhone });
+    }
+}
+
+function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+        }
+        
     </script>
 </body>
   </html>
